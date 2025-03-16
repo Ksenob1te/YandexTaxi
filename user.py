@@ -68,7 +68,7 @@ class User:
             self.circle_x, self.circle_y = path_positions[-1]
 
         pygame.draw.circle(self.surface, (0, 0, 0, 0), (self.circle_x, self.circle_y), 10)
-        self.draw_circle_area((187, 150, 0), 7, roughness=1, iterations=2, segments=12)
+        self.draw_circle_area((187, 150, 0), 6, roughness=1, iterations=4, segments=12)
         # pygame.draw.circle(self.surface, (187, 150, 0), (self.circle_x, self.circle_y), 6)
         pygame.draw.circle(self.surface, (255, 204, 0), (self.circle_x, self.circle_y), 5)
 

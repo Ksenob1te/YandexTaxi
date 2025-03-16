@@ -11,6 +11,8 @@ class Marker:
     polygon = None
     dot_array = []
     active = []
+    used = False
+    radius = 30
 
     def __init__(self, marker_x, marker_y, color=(0, 0, 255), name="Marker"):
         self.color = color
@@ -20,6 +22,16 @@ class Marker:
         if Marker.surface is None:
             Marker.surface = pygame.Surface((BIG_MAP_WIDTH, BIG_MAP_HEIGHT), pygame.SRCALPHA)
         self.surface.fill((0, 0, 0, 0))
+
+    def make_used(self):
+        min_x, min_y, max_x, max_y = self.polygon.bounds
+        self.color = (128, 128, 128, 255)
+        pygame.draw.rect(self.surface, (0, 0, 0, 0),
+                         (min_x - 5, min_y - 5, max_x - min_x + 10, max_y - min_y + 10))
+        self.draw_marker(refresh=True)
+        if self in Marker.active:
+            Marker.active.remove(self)
+        self.used = True
 
     def draw_hatch_lines(self, hatch_spacing, hatch_angle, color):
         import math
@@ -104,7 +116,7 @@ class Marker:
         dx = user_x - self.marker_x
         dy = user_y - self.marker_y
         dist = math.hypot(dx, dy)
-        if dist < user_radius * 1.25:
+        if dist < user_radius * 1.25 and not self.used:
             min_x, min_y, max_x, max_y = self.polygon.bounds
             pygame.draw.rect(self.surface, (0, 0, 0, 0),
                              (min_x - 5, min_y - 5, max_x - min_x + 10, max_y - min_y + 10))

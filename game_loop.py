@@ -1,11 +1,18 @@
 from map_drawer import render_entire_map, create_path
+from menu import HandDrawnMenu
+from candy_display import HandDrawnCandyDisplay
 from static import *
 from user import User
 from markers import Marker, generate_random_markers
 import time
+import math
 
 import networkx as nx
 import pygame
+
+
+def open_marker_menu(marker):
+    print(f"Opened menu for marker: {marker}")
 
 
 def main():
@@ -15,15 +22,18 @@ def main():
 
     zoom = 1.0
     pan_x, pan_y = 0, 0
-    zoom_step = 0.1
     pan_speed = 20
     user_circle = User()
     surface_array = []
+
+    menu = HandDrawnMenu(WIDTH, HEIGHT)
+    candy_menu = HandDrawnCandyDisplay(WIDTH, HEIGHT)
 
     # -------------------------------
     # MAP RENDER
     # -------------------------------
     print("Rendering map. Please wait...")
+    counter = 0
     start_t = time.perf_counter()
     big_map_surface = render_entire_map()
     surface_array.append(big_map_surface)
@@ -60,10 +70,22 @@ def main():
                     pan_y += pan_speed
                 elif event.key == pygame.K_DOWN:
                     pan_y -= pan_speed
-                elif event.key in (pygame.K_EQUALS, pygame.K_PLUS):
-                    zoom += zoom_step
-                elif event.key in (pygame.K_MINUS, pygame.K_UNDERSCORE):
-                    zoom = max(0.1, zoom - zoom_step)
+            elif menu.visible:
+                counter = menu.handle_event(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+
+                for marker in Marker.active:
+                    marker_screen_x = (marker.marker_x - user_circle.circle_x) + WIDTH // 2
+                    marker_screen_y = (marker.marker_y - user_circle.circle_y) + HEIGHT // 2
+
+                    dist = math.hypot(mx - marker_screen_x, my - marker_screen_y)
+                    if dist < marker.radius and not marker.used:
+                        menu.box_clicked = False
+                        menu.show_candy = False
+                        menu.open()
+                        marker.make_used()
+                        break
 
         scaled_w = int(BIG_MAP_WIDTH * zoom)
         scaled_h = int(BIG_MAP_HEIGHT * zoom)
@@ -81,6 +103,8 @@ def main():
             surface_map = pygame.transform.smoothscale(surface, (scaled_w, scaled_h))
             screen.blit(surface_map, (pan_x, pan_y))
 
+        menu.draw(screen)
+        candy_menu.draw(screen, counter)
         pygame.display.flip()
         clock.tick(30)
     pygame.quit()
